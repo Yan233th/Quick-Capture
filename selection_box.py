@@ -1,7 +1,7 @@
 import tkinter as tk
 
-CORNER_SIZE = 15
-CORNER_COLOR = "red"
+CORNER_SIZE = 8
+CORNER_COLOR = "#000000"
 DRAG_THRESHOLD = 5
 MIN_WINDOW_SIZE = CORNER_SIZE * 2 + 20
 TRANSPARENT_COLOR = "grey15"
@@ -35,8 +35,6 @@ class SelectionBox:
         s = CORNER_SIZE
         self.corners = {
             "top_left": self.canvas.create_rectangle(0, 0, s, s, fill=CORNER_COLOR),
-            "top_right": self.canvas.create_rectangle(0, 0, s, s, fill=CORNER_COLOR),
-            "bottom_left": self.canvas.create_rectangle(0, 0, s, s, fill=CORNER_COLOR),
             "bottom_right": self.canvas.create_rectangle(0, 0, s, s, fill=CORNER_COLOR),
         }
         self.root.bind("<Configure>", self._update_corners_position)
@@ -45,8 +43,6 @@ class SelectionBox:
         s = CORNER_SIZE
         w, h = self.root.winfo_width(), self.root.winfo_height()
         self.canvas.coords(self.corners["top_left"], 0, 0, s, s)
-        self.canvas.coords(self.corners["top_right"], w - s, 0, w, s)
-        self.canvas.coords(self.corners["bottom_left"], 0, h - s, s, h)
         self.canvas.coords(self.corners["bottom_right"], w - s, h - s, w, h)
 
     def _bind_events(self):
@@ -59,10 +55,6 @@ class SelectionBox:
         w, h = self.root.winfo_width(), self.root.winfo_height()
         if x < s and y < s:
             return "top_left"
-        if x > w - s and y < s:
-            return "top_right"
-        if x < s and y > h - s:
-            return "bottom_left"
         if x > w - s and y > h - s:
             return "bottom_right"
         return "move"

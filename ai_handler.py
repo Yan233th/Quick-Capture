@@ -24,7 +24,7 @@ API_KEY = os.getenv("GOOGLE_API_KEY")
 THINKING_BUDGET = int(os.getenv("THINKING_BUDGET", "0"))
 
 MODEL_NAME = "gemini-flash-latest"
-DEFAULT_PROMPT = "Respond appropriately based on what you see. For example, if it's a question, answer it."
+DEFAULT_PROMPT = "Respond appropriately based on what you see. For example, if it's a question, answer it. Do not output in Markdown format."
 
 client = None
 if API_KEY:
