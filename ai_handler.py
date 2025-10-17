@@ -3,6 +3,18 @@ import queue
 import time
 from PIL import Image
 
+# --- Proxy Configuration Loading ---
+PROXY_ENABLED = os.getenv("PROXY_ENABLED", "false").lower() == "true"
+PROXY_URL = os.getenv("PROXY_URL")
+
+if PROXY_ENABLED and PROXY_URL:
+    os.environ["HTTP_PROXY"] = PROXY_URL
+    os.environ["HTTPS_PROXY"] = PROXY_URL
+    print(f"Proxy enabled and set to: {PROXY_URL}")
+elif PROXY_ENABLED and not PROXY_URL:
+    print("Warning: PROXY_ENABLED is true, but no PROXY_URL is set in .env file. Proxy will not be used.")
+
+# --- AI Model Initialization ---
 API_KEY = os.getenv("GOOGLE_API_KEY")
 
 model = None
