@@ -3,6 +3,8 @@ import tkinter as tk
 CORNER_SIZE = 15
 CORNER_COLOR = "red"
 DRAG_THRESHOLD = 5
+MIN_WINDOW_SIZE = CORNER_SIZE * 2 + 20
+TRANSPARENT_COLOR = "grey15"
 
 
 class SelectionBox:
@@ -13,30 +15,29 @@ class SelectionBox:
         self.root.overrideredirect(True)
         self.root.attributes("-topmost", True)
         self.root.attributes("-alpha", 0.99)
-        transparent_color = "grey15"
-        self.root.config(bg=transparent_color)
-        self.root.wm_attributes("-transparentcolor", transparent_color)
+        self.root.config(bg=TRANSPARENT_COLOR)
+        self.root.wm_attributes("-transparentcolor", TRANSPARENT_COLOR)
 
-        self.canvas = tk.Canvas(root, bg=transparent_color, highlightthickness=0)
+        self.canvas = tk.Canvas(root, bg=TRANSPARENT_COLOR, highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
         self._create_corners()
         self._bind_events()
 
-        self._drag_start_x = 0
-        self._drag_start_y = 0
         self._press_x = 0
         self._press_y = 0
+        self._drag_start_x = 0
+        self._drag_start_y = 0
         self._is_dragging = False
         self._resize_corner = None
 
     def _create_corners(self):
         s = CORNER_SIZE
         self.corners = {
-            "top_left": self.canvas.create_rectangle(0, 0, s, s, fill=CORNER_COLOR, outline=CORNER_COLOR),
-            "top_right": self.canvas.create_rectangle(0, 0, s, s, fill=CORNER_COLOR, outline=CORNER_COLOR),
-            "bottom_left": self.canvas.create_rectangle(0, 0, s, s, fill=CORNER_COLOR, outline=CORNER_COLOR),
-            "bottom_right": self.canvas.create_rectangle(0, 0, s, s, fill=CORNER_COLOR, outline=CORNER_COLOR),
+            "top_left": self.canvas.create_rectangle(0, 0, s, s, fill=CORNER_COLOR),
+            "top_right": self.canvas.create_rectangle(0, 0, s, s, fill=CORNER_COLOR),
+            "bottom_left": self.canvas.create_rectangle(0, 0, s, s, fill=CORNER_COLOR),
+            "bottom_right": self.canvas.create_rectangle(0, 0, s, s, fill=CORNER_COLOR),
         }
         self.root.bind("<Configure>", self._update_corners_position)
 
@@ -68,17 +69,16 @@ class SelectionBox:
 
     def _on_press(self, event):
         self._resize_corner = self._get_corner_at(event.x, event.y)
-        self._drag_start_x = event.x_root
-        self._drag_start_y = event.y_root
-        self._press_x = event.x_root
-        self._press_y = event.y_root
+        self._press_x = self._drag_start_x = event.x_root
+        self._press_y = self._drag_start_y = event.y_root
         self._is_dragging = False
 
     def _on_motion(self, event):
-        dx = abs(event.x_root - self._press_x)
-        dy = abs(event.y_root - self._press_y)
-        if dx > DRAG_THRESHOLD or dy > DRAG_THRESHOLD:
-            self._is_dragging = True
+        if not self._is_dragging:
+            dx = abs(event.x_root - self._press_x)
+            dy = abs(event.y_root - self._press_y)
+            if dx > DRAG_THRESHOLD or dy > DRAG_THRESHOLD:
+                self._is_dragging = True
 
         if not self._is_dragging:
             return
@@ -100,13 +100,11 @@ class SelectionBox:
             if "top" in self._resize_corner:
                 y += delta_y
                 h -= delta_y
-
-            w = max(w, CORNER_SIZE * 2 + 20)
-            h = max(h, CORNER_SIZE * 2 + 20)
+            w = max(w, MIN_WINDOW_SIZE)
+            h = max(h, MIN_WINDOW_SIZE)
             self.root.geometry(f"{w}x{h}+{x}+{y}")
 
-        self._drag_start_x = event.x_root
-        self._drag_start_y = event.y_root
+        self._drag_start_x, self._drag_start_y = event.x_root, event.y_root
 
     def _on_release(self, event):
         if not self._is_dragging and self._resize_corner != "move":

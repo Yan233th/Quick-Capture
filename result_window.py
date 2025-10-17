@@ -3,31 +3,40 @@ from tkinter import scrolledtext
 import queue
 
 
-def display_stream_result(q: queue.Queue):
-    result_window = tk.Toplevel()
-    result_window.title("AI Analysis Result")
-    result_window.attributes("-topmost", True)
+class ResultWindow(tk.Toplevel):
+    def __init__(self, q: queue.Queue):
+        super().__init__()
+        self.q = q
 
-    text_area = scrolledtext.ScrolledText(result_window, wrap=tk.WORD, width=60, height=15, relief="flat", borderwidth=0)
-    text_area.pack(padx=10, pady=10, expand=True, fill="both")
-    text_area.configure(state="disabled")
+        self.title("AI Analysis Result")
+        self.attributes("-topmost", True)
 
-    def update_text():
+        self.text_area = scrolledtext.ScrolledText(self, wrap=tk.WORD, width=60, height=15, relief="flat", borderwidth=0)
+        self.text_area.pack(padx=10, pady=10, expand=True, fill="both")
+        self.text_area.configure(state="disabled")
+
+        self._center_window()
+        self.after(100, self._update_text)
+
+    def _update_text(self):
         try:
             while True:
-                chunk = q.get_nowait()
+                chunk = self.q.get_nowait()
                 if chunk is None:
                     return
-                text_area.configure(state="normal")
-                text_area.insert(tk.END, chunk)
-                text_area.configure(state="disabled")
-                text_area.see(tk.END)
+                self.text_area.configure(state="normal")
+                self.text_area.insert(tk.END, chunk)
+                self.text_area.configure(state="disabled")
+                self.text_area.see(tk.END)
         except queue.Empty:
-            result_window.after(100, update_text)
+            self.after(100, self._update_text)
 
-    result_window.after(100, update_text)
+    def _center_window(self):
+        self.update_idletasks()
+        x = (self.winfo_screenwidth() - self.winfo_width()) // 2
+        y = (self.winfo_screenheight() - self.winfo_height()) // 2
+        self.geometry(f"+{x}+{y}")
 
-    result_window.update_idletasks()
-    x = (result_window.winfo_screenwidth() - result_window.winfo_width()) // 2
-    y = (result_window.winfo_screenheight() - result_window.winfo_height()) // 2
-    result_window.geometry(f"+{x}+{y}")
+
+def display_stream_result(q: queue.Queue):
+    ResultWindow(q)
