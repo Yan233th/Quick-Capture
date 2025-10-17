@@ -1,6 +1,7 @@
 import os
 import queue
 import time
+from io import BytesIO
 from PIL import Image
 from dotenv import load_dotenv
 
@@ -33,6 +34,12 @@ if API_KEY:
         print(f"Error initializing AI client: {e}")
 
 
+def image2part(image: Image.Image) -> types.Part:
+    buf = BytesIO()
+    image.save(buf, format="png")
+    return types.Part.from_bytes(data=buf.getvalue(), mime_type="image/png")
+
+
 def send_to_ai_stream(image: Image.Image, q: queue.Queue):
     print("Streaming image to AI for analysis...")
     if not client:
@@ -45,7 +52,7 @@ def send_to_ai_stream(image: Image.Image, q: queue.Queue):
 
     try:
         contents = [
-            types.Content(role="user", parts=[DEFAULT_PROMPT, image]),
+            types.Content(role="user", parts=[types.Part.from_text(text=DEFAULT_PROMPT), image2part(image)]),
         ]
         config = types.GenerateContentConfig(
             thinking_config=types.ThinkingConfig(

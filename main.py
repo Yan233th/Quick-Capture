@@ -2,6 +2,7 @@ import tkinter as tk
 import threading
 import queue
 import pyautogui
+import signal
 
 from selection_box import SelectionBox
 from ai_handler import API_KEY, send_to_ai_stream
@@ -47,6 +48,12 @@ if __name__ == "__main__":
     root.geometry("400x300+100+100")
 
     selection_box = SelectionBox(root, trigger_callback=capture_and_process)
+
+    def handle_ctrl_c(signum, frame):
+        print("\nCtrl+C detected. Shutting down application.")
+        root.destroy()
+
+    signal.signal(signal.SIGINT, handle_ctrl_c)
 
     if not API_KEY:
         print("Warning: GOOGLE_API_KEY not found in .env file. Running in offline/mock mode.")
